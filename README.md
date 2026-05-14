@@ -210,6 +210,36 @@ At evaluation time, `test_mode` can be set to `"seen"` (remain), `"in_dist"`, `"
 
 </details>
 
+<details>
+<summary><b>Where are the field / channel names for each scenario documented?</b></summary>
+
+Each scenario folder on the [HF dataset](https://huggingface.co/datasets/AI4Science-WestlakeU/RealPDEBench) ships a machine-readable `{scenario}/channels.json` describing every field (Arrow column) with its shape and a short physical description. Authoritative units and physical definitions live on the [dataset documentation pages](https://realpdebench.github.io/datasets/).
+
+| Scenario | Real fields | Numerical fields |
+|---|---|---|
+| cylinder | `u`, `v` | `u`, `v`, `p` |
+| controlled_cylinder | `u`, `v` | `u`, `v`, `p` |
+| fsi | `u`, `v` | `u`, `v`, `p` |
+| foil | `u`, `v` | `u`, `v`, `p` |
+| combustion | `observed` | `observed` + `numerical` *(packed 15 channels — see below)* |
+
+For combustion, the `numerical` column has shape `(T, H, W, 15)`; the 15 channels along the last axis are, in order:
+
+| Idx | Channel | Idx | Channel |
+|---:|---|---:|---|
+| 0 | `Absolute_Pressure` | 8 | `Mole_Fraction_of_OH` |
+| 1 | `Chemistry_Heat_Release_Rate` | 9 | `Pressure` |
+| 2 | `Mole_Fraction_of_CH4` | 10 | `Temperature` |
+| 3 | `Mole_Fraction_of_CO` | 11 | `Velocity[i]` |
+| 4 | `Mole_Fraction_of_CO2` | 12 | `Velocity[j]` |
+| 5 | `Mole_Fraction_of_H2O` | 13 | `Velocity[k]` |
+| 6 | `Mole_Fraction_of_NH2` | 14 | `Velocity_Magnitude` |
+| 7 | `Mole_Fraction_of_NH3` | | |
+
+See [`combustion/channels.json`](https://huggingface.co/datasets/AI4Science-WestlakeU/RealPDEBench/blob/main/combustion/channels.json) for the same list with physical descriptions.
+
+</details>
+
 ------
 
 ## 🫡 Citation
