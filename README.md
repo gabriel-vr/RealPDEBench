@@ -7,7 +7,6 @@
 
 [![HF Dataset](https://img.shields.io/badge/HF%20Dataset-RealPDEBench-FFD21E?logo=huggingface)](https://huggingface.co/datasets/AI4Science-WestlakeU/RealPDEBench)
 [![HF Models](https://img.shields.io/badge/HF%20Models-RealPDEBench--models-FFD21E?logo=huggingface)](https://huggingface.co/AI4Science-WestlakeU/RealPDEBench-models)
-[![Raw HDF5](https://img.shields.io/badge/Raw%20HDF5-westlake.edu.cn-7c3aed)](https://realpdebench.westlake.edu.cn/)
 [![arXiv](https://img.shields.io/badge/arXiv-2601.01829-b31b1b?logo=arxiv)](https://arxiv.org/abs/2601.01829)
 [![Website & Docs](https://img.shields.io/badge/Website%20%26%20Docs-realpdebench.github.io-1f6feb?logo=google-chrome)](https://realpdebench.github.io/)
 [![Codebase](https://img.shields.io/badge/Codebase-GitHub-181717?logo=github)](https://github.com/AI4Science-WestlakeU/RealPDEBench)
