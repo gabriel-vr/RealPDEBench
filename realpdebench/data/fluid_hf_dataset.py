@@ -278,6 +278,8 @@ class FluidHFDataset(RealDataset):
         full_shape = (row["shape_t"], row["shape_h"], row["shape_w"])
         u_full = self._decode_array(row["u"], full_shape)
         v_full = self._decode_array(row["v"], full_shape)
+        #t_full = self._decode_array(row["t"], 2*row["shape_t"])
+
 
         # DYNAMIC slicing + RUNTIME SUBSAMPLING
         # Time slicing: [time_id : time_id + horizon]
@@ -285,6 +287,8 @@ class FluidHFDataset(RealDataset):
         sub_s = self.sub_s
         u = u_full[time_id : time_id + self.horizon, ::sub_s, ::sub_s]
         v = v_full[time_id : time_id + self.horizon, ::sub_s, ::sub_s]
+        #t = t_full[time_id : time_id + self.horizon]
+
 
         # Handle pressure channel
         if self.dataset_type == "real":
@@ -332,7 +336,7 @@ class FluidHFDataset(RealDataset):
                 para_list.append(para_data)
             input_data = torch.cat([input_data, torch.stack(para_list, dim=-1)], dim=-1)
         
-        return input_data, output_data  # T, H, W, C
+        return input_data, output_data, time_id  # T, H, W, C
     
     def __len__(self) -> int:
         return len(self._indices)

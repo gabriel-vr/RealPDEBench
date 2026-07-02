@@ -4,7 +4,7 @@ import logging
 def load_model(train_dataset, device='cpu', **kwargs):
     model_name = kwargs['model_name']
 
-    input, target = train_dataset[0] # T, S, S, C
+    input, target, _ = train_dataset[0] # T, S, S, C
     input_shape = input.shape
     output_shape = target.shape
 
@@ -147,7 +147,7 @@ def load_model(train_dataset, device='cpu', **kwargs):
         
         model = Model(
             space_dim=kwargs['space_dim'], n_layers=kwargs['n_layers'], n_hidden=kwargs['n_hidden'], n_head=kwargs['n_head'],
-            H=kwargs['H'], W=kwargs['W'], D=kwargs['D'], Time_Input=False, unified_pos=False,
+            H=kwargs['H'], W=kwargs['W'], D=kwargs['D'], Time_Input=kwargs.get('Time_Input', False), unified_pos=False,
             fun_dim=kwargs['fun_dim'], out_dim=kwargs['out_dim'], ref=kwargs['ref'],dropout=kwargs['dropout'], act=kwargs['act'], mlp_ratio=kwargs['mlp_ratio'], slice_num=kwargs['slice_num']
         ).to(device)
     

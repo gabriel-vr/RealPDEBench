@@ -67,7 +67,7 @@ class GaussianNormalizer(object):
         n_samples = 0
         mean_inputs, mean_targets = 0., 0.
         var_inputs, var_targets = 0., 0. 
-        for inputs, targets in tqdm(loader, desc="Computing mean and std"):
+        for inputs, targets, _ in tqdm(loader, desc="Computing mean and std"):
             b, c1, c2 = inputs.size(0), inputs.size(-1), targets.size(-1)
             inputs = inputs.view(b, -1, c1)
             targets = targets.view(b, -1, c2)
@@ -133,7 +133,7 @@ class RangeNormalizer(object):
         loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=12)
 
         max_inputs, max_targets = None, None
-        for inputs, targets in tqdm(loader, desc="Computing max"):
+        for inputs, targets, _ in tqdm(loader, desc="Computing max"):
             c1, c2 = inputs.size(-1), targets.size(-1)
             inputs = inputs.view(-1, c1)
             targets = targets.view(-1, c2)

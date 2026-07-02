@@ -51,6 +51,12 @@ parser.add_argument(
     default=None,
     help="Optional HF revision (branch/tag/commit).",
 )
+parser.add_argument(
+    "--lambda_sg",
+    type=float,
+    default=0.0,
+    help="Optional lambda value for how much the semigroup-regularization is applied.",
+)
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -321,11 +327,37 @@ if __name__ == "__main__":
     for iteration in pbar:
         model.train()
         
-        input, target = next(train_dataloader)
+        batch = next(train_dataloader)
+        input, target = batch[0], batch[1]
+        
         optimizer.zero_grad()
         input, target = data_normalizer.preprocess(input, target)
         
         loss = model.train_loss(input, target).mean()
+        if args.lambda_sg > 0:
+                dt = 2.5*1e-3
+                nt = input.shape[1]
+                
+                #u0 = input[:, 0:1]  # initial condition
+                time_ids = batch[2]  # time index from where sequence starts
+                s = []
+                t2 = []
+                st = []
+                for time_id in time_ids:
+                    s_ix = np.random.randint(1, nt // 2 + 1, size=1)
+                    t2_ix = np.random.randint(1, nt - s_ix, size=1)
+                    s.append(time_id + s_ix)
+                    t2.append(time_id + t2_ix)
+                    st.append(time_id + s_ix + t2_ix)
+                s = torch.tensor(s, device=device) * dt
+                t2 = torch.tensor(t2, device=device) * dt
+                st = torch.tensor(st, device=device) * dt
+
+
+                direct = model(input, T=st)
+                comp = model(model(input, T=s), T=t2)
+                sg = ((direct - comp) ** 2).mean()
+                loss = loss + args.lambda_sg * sg
         loss.backward()
         if args.clip_grad_norm > 0:
             nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad_norm)
@@ -347,7 +379,7 @@ if __name__ == "__main__":
 
             pred_list, target_list = [], []
             with torch.no_grad():
-                for input, target in val_dataloader:
+                for input, target, _ in val_dataloader:
                     b = input.size(0)
                     if 'unmeasured_c' not in locals():
                         unmeasured_c = 0
