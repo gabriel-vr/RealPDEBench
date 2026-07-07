@@ -171,6 +171,8 @@ if __name__ == "__main__":
                 "hf_repo_id": args.hf_repo_id,
                 "hf_endpoint": args.hf_endpoint,
                 "hf_revision": args.hf_revision,
+                'in_step': args.in_step if hasattr(args, 'in_step') else 20,
+                'out_step': args.out_step if hasattr(args, 'out_step') else 20,
             }
         train_dataset = DatasetClass(
             dataset_name=args.dataset_name,
