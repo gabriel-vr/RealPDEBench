@@ -20,7 +20,15 @@ def load_model(train_dataset, device='cpu', **kwargs):
             shape_in=input_shape, 
             shape_out=output_shape
             ).to(device)
-
+    elif model_name == 'fno1d':
+        from realpdebench.model.fno1d import SemigroupFNO1d
+        model = SemigroupFNO1d(
+            modes=kwargs['modes'], 
+            width=kwargs['width'], 
+            n_layers=kwargs['n_layers'], 
+            state_channels=kwargs['state_channels'],
+            forcing_channels=kwargs.get('forcing_channels', 0),
+        ).double().to(device)
     elif model_name == 'wdno':
         from realpdebench.model.wdno_libs.unet import Unet3d
         from realpdebench.model.wdno import WDNO
