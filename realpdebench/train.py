@@ -326,40 +326,69 @@ if __name__ == "__main__":
         'freq_error': [],
     }
 
+    #dt = 2.5*1e-3
+
     for iteration in pbar:
         model.train()
         
         batch = next(train_dataloader)
-        input, target = batch[0], batch[1]
+        input, target, time_ids = batch[0], batch[1], batch[2]
+        nt = input.shape[1]
+
         
         optimizer.zero_grad()
         input, target = data_normalizer.preprocess(input, target)
-        
-        loss = model.train_loss(input, target).mean()
+
+        if args.model_name == 'fno1d':
+            #delta_time_steps = (time_ids + nt) * dt
+            #delta_time_steps = nt * dt
+            delta_time_steps = nt
+
+            u0 = input[:, 0:1]  # initial condition
+            target_from_u0 = target[:, 0:1]  # target is the next time step
+            
+            u0 = u0.reshape(u0.shape[0], -1, u0.shape[-1]).double()  # (B, 1*H*W, C)
+            target_from_u0 = target_from_u0.reshape(target_from_u0.shape[0], -1, target_from_u0.shape[-1]).double()  # (B, 1*H*W, C)
+
+            pred = model(u0, delta_steps=delta_time_steps)        
+            loss = mse_loss(pred, target_from_u0).mean()
+
+        else:
+            loss = model.train_loss(input, target).mean()
+
         if args.lambda_sg > 0:
-                dt = 2.5*1e-3
-                nt = input.shape[1]
                 
-                #u0 = input[:, 0:1]  # initial condition
-                time_ids = batch[2]  # time index from where sequence starts
                 s = []
                 t2 = []
                 st = []
                 for time_id in time_ids:
-                    s_ix = np.random.randint(1, nt // 2 + 1, size=1)
-                    t2_ix = np.random.randint(1, nt - s_ix, size=1)
-                    s.append(time_id + s_ix)
-                    t2.append(time_id + t2_ix)
-                    st.append(time_id + s_ix + t2_ix)
-                s = torch.tensor(s, device=device) * dt
-                t2 = torch.tensor(t2, device=device) * dt
-                st = torch.tensor(st, device=device) * dt
-
-
-                direct = model(input, T=st)
-                comp = model(model(input, T=s), T=t2)
-                sg = ((direct - comp) ** 2).mean()
-                loss = loss + args.lambda_sg * sg
+                    #s_ix = np.random.randint(1, nt // 2 + 1, size=1)
+                    #t2_ix = np.random.randint(1, nt - s_ix, size=1)
+                    s_ix = np.random.random(size=1) * nt
+                    t2_ix = nt - s_ix
+                    
+                    s.append(s_ix)
+                    t2.append(t2_ix)
+                    st.append(s_ix + t2_ix)
+                '''s = torch.tensor(s, device=device).squeeze(1) * dt
+                t2 = torch.tensor(t2, device=device).squeeze(1) * dt
+                st = torch.tensor(st, device=device).squeeze(1) * dt'''
+                
+                s = torch.tensor(s, device=device).squeeze(1)
+                t2 = torch.tensor(t2, device=device).squeeze(1)
+                st = torch.tensor(st, device=device).squeeze(1)
+                
+                if args.model_name == 'fno1d':
+                    direct = model(u0, delta_steps=st)
+                    temp = model(u0, delta_steps=s)
+                    comp = model(temp, delta_steps=t2)
+                    sg = ((direct - comp) ** 2).mean()
+                    loss = loss + args.lambda_sg * sg
+                else:
+                    direct = model(input, T=st)
+                    comp = model(model(input, T=s), T=t2)
+                    sg = ((direct - comp) ** 2).mean()
+                    loss = loss + args.lambda_sg * sg
         loss.backward()
         if args.clip_grad_norm > 0:
             nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad_norm)
@@ -392,11 +421,31 @@ if __name__ == "__main__":
 
                     input, target = data_normalizer.preprocess(input, target)
 
-                    pred = model(input)
-                    normalized_val_loss += mse_loss(pred[..., :c], target[..., :c]).reshape(b, -1).mean().item()
+                    if args.model_name == 'fno1d':
+                        #delta_time_steps = (time_ids + nt) * dt
+                        #delta_time_steps = nt * dt
+                        delta_time_steps = nt
 
-                    _, pred = data_normalizer.postprocess(input, pred)
-                    _, target = data_normalizer.postprocess(input, target)
+                        u0 = input[:, 0:1]  # initial condition
+                        target_from_u0 = target[:, 0:1]  # target is the next time step
+                        
+                        u0 = u0.reshape(u0.shape[0], -1, u0.shape[-1]).double()  # (B, 1*H*W, C)
+                        target_from_u0 = target_from_u0.reshape(target_from_u0.shape[0], -1, target_from_u0.shape[-1]).double()  # (B, 1*H*W, C)
+
+                        pred = model(u0, delta_steps=delta_time_steps)  
+                        normalized_val_loss += mse_loss(pred[..., :c], target_from_u0[..., :c]).reshape(b, -1).mean().item()
+
+                        _, pred = data_normalizer.postprocess(input, pred)
+                        _, target = data_normalizer.postprocess(input, target_from_u0)
+                        
+                        pred = pred.reshape(b, 1, *input.shape[2:])
+                        target = target.reshape(b, 1, *input.shape[2:])
+                    else:
+                        pred = model(input)
+                        normalized_val_loss += mse_loss(pred[..., :c], target[..., :c]).reshape(b, -1).mean().item()
+
+                        _, pred = data_normalizer.postprocess(input, pred)
+                        _, target = data_normalizer.postprocess(input, target)
 
                     pred_list.append(pred.cpu())
                     target_list.append(target.cpu())

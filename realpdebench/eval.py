@@ -295,7 +295,7 @@ if __name__ == "__main__":
     pred_list, target_list = [], []
     probe_error_list = []
     with torch.no_grad():
-        for batch_idx, (input, target) in enumerate(tqdm.tqdm(test_dataloader)):
+        for batch_idx, (input, target, time_ids) in enumerate(tqdm.tqdm(test_dataloader)):
             b = input.size(0)
             if 'unmeasured_c' not in locals():
                 unmeasured_c = 0
@@ -314,8 +314,19 @@ if __name__ == "__main__":
 
             preds = [input]
             for i in range(args.N_autoregressive):
-                p = model(preds[-1])
-                _, p = data_normalizer.postprocess(preds[-1], p)
+                previous_u = preds[-1][:, -1:]
+                shape_previous_u = previous_u.shape
+                
+                if args.model_name == 'fno1d':
+                    previous_u = previous_u.reshape(previous_u.shape[0], -1, previous_u.shape[-1]).double()  # (B, 1*H*W, C)
+                
+                p = model(previous_u)
+                _, p = data_normalizer.postprocess(previous_u, p)
+                
+                if args.model_name == 'fno1d':
+                    p = p.reshape(*shape_previous_u)  # (B, 1, H, W, C)
+               
+                    
                 if in_control: p = torch.cat([p, para_input.to(p.device)], dim=-1)
                 p, _ = data_normalizer.preprocess(p, target)
                 preds.append(p)
