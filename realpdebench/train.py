@@ -357,38 +357,26 @@ if __name__ == "__main__":
             loss = model.train_loss(input, target).mean()
 
         if args.lambda_sg > 0:
+                for number_intermediary_steps in [1, 2, 3]:
+                    step_size = nt / (number_intermediary_steps + 1)
+                    steps = []
+                    for i in range(number_intermediary_steps):
+                        steps.append(step_size)
+                    steps.append(nt - step_size * number_intermediary_steps)
+                    st = sum(steps)
                 
-                s = []
-                t2 = []
-                st = []
-                for time_id in time_ids:
-                    #s_ix = np.random.randint(1, nt // 2 + 1, size=1)
-                    #t2_ix = np.random.randint(1, nt - s_ix, size=1)
-                    s_ix = np.random.random(size=1) * nt
-                    t2_ix = nt - s_ix
-                    
-                    s.append(s_ix)
-                    t2.append(t2_ix)
-                    st.append(s_ix + t2_ix)
-                '''s = torch.tensor(s, device=device).squeeze(1) * dt
-                t2 = torch.tensor(t2, device=device).squeeze(1) * dt
-                st = torch.tensor(st, device=device).squeeze(1) * dt'''
-                
-                s = torch.tensor(s, device=device).squeeze(1)
-                t2 = torch.tensor(t2, device=device).squeeze(1)
-                st = torch.tensor(st, device=device).squeeze(1)
-                
-                if args.model_name == 'fno1d':
-                    direct = model(u0, delta_steps=st)
-                    temp = model(u0, delta_steps=s)
-                    comp = model(temp, delta_steps=t2)
-                    sg = ((direct - comp) ** 2).mean()
-                    loss = loss + args.lambda_sg * sg
-                else:
-                    direct = model(input, T=st)
-                    comp = model(model(input, T=s), T=t2)
-                    sg = ((direct - comp) ** 2).mean()
-                    loss = loss + args.lambda_sg * sg
+                    if args.model_name == 'fno1d':
+                        direct = model(u0, delta_steps=st)
+                        temp = u0
+                        for step in steps:
+                            temp = model(temp, delta_steps=step)
+                        sg = ((direct - temp) ** 2).mean()
+                        loss = loss + args.lambda_sg * sg
+                    """else:
+                        direct = model(input, T=st)
+                        comp = model(model(input, T=s), T=t2)
+                        sg = ((direct - comp) ** 2).mean()
+                        loss = loss + args.lambda_sg * sg"""
         loss.backward()
         if args.clip_grad_norm > 0:
             nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad_norm)
