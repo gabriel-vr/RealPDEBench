@@ -132,7 +132,7 @@ class FluidHFDataset(RealDataset):
         
         # Load trajectory data (all sim_ids for this dataset_type)
         trajectory_path = os.path.join(self.hf_dataset_dir, dataset_type)
-        index_path = os.path.join(self.hf_dataset_dir, f"{mode}_index_{dataset_type}.json")
+        index_path = os.path.join(self.hf_dataset_dir, f"{mode}_index_{dataset_type}2.json")
         if not (os.path.exists(trajectory_path) and os.path.exists(index_path)):
             need_test_params_json = mode in ["val", "test"] and test_mode != "all"
             from realpdebench.hf_download import ensure_hf_artifacts
