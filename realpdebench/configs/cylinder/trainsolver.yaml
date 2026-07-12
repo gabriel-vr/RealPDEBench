@@ -5,7 +5,7 @@ results_path: "./results/"
 
 # data
 dataset_name: "cylinder"
-dataset_root: "/raid/work/sandbox/RealPDEBench/data/cylinder/"
+dataset_root: "/raid/work/sandbox/RealPDEBench/data/"
 num_workers: 12
 normalizer: "gaussian" # none, gaussian, range
 
