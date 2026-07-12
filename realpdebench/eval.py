@@ -375,6 +375,13 @@ if __name__ == "__main__":
             probe_error = np.mean(probe_error_list)
             logging.info(f"Probe based diagnostic: {probe_error:.5f}")
 
+        torch.save({
+            'pred': torch.cat(pred_list, dim=0).detach().cpu(),
+            'target': torch.cat(target_list, dim=0).detach().cpu(),
+        }, os.path.join(exp_path, f"test_trajectories.pt"))
+
+    
+
     end_time = time.time()
     logging.info(f"Testing complete, time cost is {(end_time-start_time)/60:.2f} min")
     logging.info(f"Results saved at {exp_path}")
