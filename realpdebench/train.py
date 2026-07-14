@@ -173,6 +173,7 @@ if __name__ == "__main__":
                 "hf_revision": args.hf_revision,
                 'in_step': args.in_step if hasattr(args, 'in_step') else 20,
                 'out_step': args.out_step if hasattr(args, 'out_step') else 20,
+                'dataset_sufix': args.dataset_sufix if hasattr(args, 'dataset_sufix') else ''
             }
         train_dataset = DatasetClass(
             dataset_name=args.dataset_name,
@@ -392,7 +393,7 @@ if __name__ == "__main__":
         if args.is_use_tb:
             writer.add_scalar("train_loss", loss.item(), iteration)
 
-        if iteration % int(args.num_update / 50) == 0:
+        if iteration % int(args.num_update / 40) == 0:
             model.eval()
             normalized_val_loss = 0.
 
