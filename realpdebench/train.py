@@ -57,6 +57,11 @@ parser.add_argument(
     default=0.0,
     help="Optional lambda value for how much the semigroup-regularization is applied.",
 )
+parser.add_argument(
+    "--use_ground_truth_for_sg",
+    action='store_true',
+    help="Whether to use ground truth for semigroup regularization.",
+)
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -352,7 +357,14 @@ if __name__ == "__main__":
 
             pred = model(u0, delta_steps=delta_time_steps)        
             loss = mse_loss(pred, target_from_u0).mean()
+        elif args.model_name == 'deeponet':
+            delta_time_steps = nt
 
+            u0 = input[:, 0:1]  # initial condition
+            target_from_u0 = target[:, 0:1]  # target is the next time step
+            
+            pred = model(u0, delta_steps=delta_time_steps)        
+            loss = mse_loss(pred, target_from_u0).mean()
         else:
             loss = model.train_loss(input, target).mean()
 
@@ -365,8 +377,11 @@ if __name__ == "__main__":
                     steps.append(nt - step_size * number_intermediary_steps)
                     st = sum(steps)
                 
-                    if args.model_name == 'fno1d':
-                        direct = model(u0, delta_steps=st)
+                    if args.model_name == 'fno1d' or args.model_name == 'deeponet':
+                        if bool(args.use_ground_truth_for_sg):
+                            direct = target_from_u0
+                        else:
+                            direct = model(u0, delta_steps=st)
                         temp = u0
                         for step in steps:
                             temp = model(temp, delta_steps=step)
@@ -392,7 +407,7 @@ if __name__ == "__main__":
         if args.is_use_tb:
             writer.add_scalar("train_loss", loss.item(), iteration)
 
-        if iteration % int(args.num_update / 50) == 0:
+        if iteration % int(args.num_update / 25) == 0:
             model.eval()
             normalized_val_loss = 0.
 
@@ -428,6 +443,17 @@ if __name__ == "__main__":
                         
                         pred = pred.reshape(b, 1, *input.shape[2:])
                         target = target.reshape(b, 1, *input.shape[2:])
+                    elif args.model_name == 'deeponet':                        #delta_time_steps = (time_ids + nt) * dt
+                        delta_time_steps = nt
+
+                        u0 = input[:, 0:1]  # initial condition
+                        target_from_u0 = target[:, 0:1]  # target is the next time step
+                        
+                        pred = model(u0, delta_steps=delta_time_steps)  
+                        normalized_val_loss += mse_loss(pred[..., :c], target_from_u0[..., :c]).reshape(b, -1).mean().item()
+
+                        _, pred = data_normalizer.postprocess(input, pred)
+                        _, target = data_normalizer.postprocess(input, target_from_u0)
                     else:
                         pred = model(input)
                         normalized_val_loss += mse_loss(pred[..., :c], target[..., :c]).reshape(b, -1).mean().item()
