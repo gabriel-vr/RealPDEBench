@@ -17,7 +17,7 @@ noise_scale: 0.1 # only applicable for numerical data
 
 # model
 model_name: "fno1d"
-checkpoint_path: "/raid/work/sandbox/RealPDEBench/models/fno1d/fno1d_cylinder_numerical_False/2026-07-06_23-12-29/model_0080.pth"
+checkpoint_path: "/raid/work/sandbox/RealPDEBench/models/fno1d/fno1d_cylinder_numerical_False/2026-07-11_23-32-25/model_0080.pth"
 modes: 16
 n_layers: 4
 width: 64
@@ -27,14 +27,14 @@ state_channels: 3
 is_use_tb: 
 scheduler: cosine # step, cosine
 step_size: 1000 # only applicable for step scheduler
-num_update: 4000
+num_update: 1000
 train_batch_size: 32
 test_batch_size: 4
 lr: 0.0001
 clip_grad_norm: 0.
 
 # evaluation
-N_autoregressive: 1000
+N_autoregressive: 3988
 N_plot: 0
 probe_diagnostic: True
 N_plot_probe: 12
