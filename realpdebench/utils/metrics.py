@@ -229,6 +229,34 @@ def probe_diagnostic(pred, target, d, center_x, center_y, sub_s_real, start_time
         
     return probe_error_list
 
+def calculate_relative_loss(err, target=None, reduction="sum"):
+    batch_size = err.shape[0]
+    temp_size = err.shape[1]
+    if isinstance(err, torch.Tensor):
+        err_norm = torch.norm(err.reshape(batch_size, temp_size, -1), p=2, dim=2)
+        if target is None:
+            target_norm = 1.0
+        else:
+            target_norm = torch.norm(target.reshape(batch_size, temp_size,-1), p=2, dim=2)
+        if reduction is None:
+            return err_norm / target_norm
+        elif reduction == "sum":
+            return torch.sum(err_norm / target_norm, dim=0)
+        else:
+            return torch.mean(err_norm / target_norm, dim=0)
+    else:
+        err_norm = np.linalg.norm(err.reshape(batch_size, -1), ord=2, axis=1)
+        if target is None:
+            target_norm = 1.0
+        else:
+            target_norm = np.linalg.norm(target.reshape(batch_size, -1), ord=2, axis=1)
+        if reduction is None:
+            return err_norm / target_norm
+        elif reduction == "sum":
+            return np.sum(err_norm / target_norm)
+        else:
+            return np.mean(err_norm / target_norm)
+        
 if __name__ == "__main__":
     pred = torch.randn(32, 10, 64, 64, 3)
     target = torch.randn(32, 10, 64, 64, 3)
