@@ -1,13 +1,15 @@
 exp_name: deeponet_cylinder
 gpu: 0
 seed: 0
-results_path: ./results/
+results_path: /raid/work/sandbox/RealPDEBench/models/
 
 # data
 dataset_name: cylinder
-dataset_root: /wutailin/real_benchmark/
+dataset_root: /raid/work/sandbox/RealPDEBench/data/
 num_workers: 12   
 normalizer: gaussian   # none, gaussian, range
+in_step: 1
+out_step: 1
 
 # data parameters for training
 mask_prob: 0.1
@@ -26,12 +28,12 @@ scheduler: cosine # step, cosine
 step_size: 1000 # only applicable for step scheduler
 num_update: 5000
 train_batch_size: 32
-test_batch_size: 64
+test_batch_size: 4
 lr: 0.0001
 clip_grad_norm: 0.
 
 # evaluation
-N_autoregressive: 10
+N_autoregressive: 1000
 N_plot: 1
 probe_diagnostic: True
 N_plot_probe: 12
