@@ -162,6 +162,8 @@ if __name__ == "__main__":
                 "hf_revision": args.hf_revision,
                 'in_step': args.in_step if hasattr(args, 'in_step') else 20,
                 'out_step': args.out_step if hasattr(args, 'out_step') else 20,
+                'dataset_sufix': args.dataset_sufix if hasattr(args, 'dataset_sufix') else '2'
+
             }
         test_dataset = DatasetClass(
             dataset_name=args.dataset_name,

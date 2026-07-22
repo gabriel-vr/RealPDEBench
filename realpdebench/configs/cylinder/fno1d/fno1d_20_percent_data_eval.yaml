@@ -1,0 +1,41 @@
+exp_name: "fno1d_cylinder"
+gpu: 0
+seed: 0
+results_path: "/raid/work/sandbox/RealPDEBench/models/"
+
+# data
+dataset_name: "cylinder"
+dataset_root: "/raid/work/sandbox/RealPDEBench/data/"
+dataset_sufix: "2"
+num_workers: 12
+normalizer: "gaussian" # none, gaussian, range
+in_step: 1
+out_step: 5
+
+# data parameters for training
+mask_prob: 0.1
+noise_scale: 0.1 # only applicable for numerical data
+
+# model
+model_name: "fno1d"
+checkpoint_path: "/raid/work/sandbox/RealPDEBench/models/fno1d/fno1d_cylinder_numerical_False/2026-07-06_23-12-29/model_0080.pth"
+modes: 16
+n_layers: 4
+width: 64
+state_channels: 3
+
+# training
+is_use_tb: 
+scheduler: cosine # step, cosine
+step_size: 1000 # only applicable for step scheduler
+num_update: 4000
+train_batch_size: 32
+test_batch_size: 4
+lr: 0.0001
+clip_grad_norm: 0.
+
+# evaluation
+N_autoregressive: 200
+N_plot: 0
+probe_diagnostic: True
+N_plot_probe: 12

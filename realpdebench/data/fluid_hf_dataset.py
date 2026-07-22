@@ -89,6 +89,7 @@ class FluidHFDataset(RealDataset):
         noise_type: str = "gaussian",
         optical_kernel_size: int = 4,
         optical_sigma: float = 1.0,
+        dataset_sufix: str = "",
     ):
         # Skip RealDataset.__init__() - we don't need HDF5 file counting
         Dataset.__init__(self)
@@ -106,6 +107,7 @@ class FluidHFDataset(RealDataset):
         
         # Time step configuration (matches H5 logic exactly)
         self.in_step = in_step
+        self.step = out_step
         self.out_step = out_step * N_autoregressive  # Key: multiply by N_autoregressive
         self.N_autoregressive = N_autoregressive
         self.interval = interval
@@ -132,7 +134,7 @@ class FluidHFDataset(RealDataset):
         
         # Load trajectory data (all sim_ids for this dataset_type)
         trajectory_path = os.path.join(self.hf_dataset_dir, dataset_type)
-        index_path = os.path.join(self.hf_dataset_dir, f"{mode}_index_{dataset_type}2.json")
+        index_path = os.path.join(self.hf_dataset_dir, f"{mode}_index_{dataset_type}{dataset_sufix}.json")
         if not (os.path.exists(trajectory_path) and os.path.exists(index_path)):
             need_test_params_json = mode in ["val", "test"] and test_mode != "all"
             from realpdebench.hf_download import ensure_hf_artifacts
@@ -307,8 +309,7 @@ class FluidHFDataset(RealDataset):
         
         # Split into input/output (same logic as H5)
         input_data = torch.tensor(data[:self.in_step], dtype=torch.float32)
-        output_data = torch.tensor(data[self.in_step:], dtype=torch.float32)
-        
+        output_data = torch.tensor(data[self.step::self.step], dtype=torch.float32)
         # Apply noise augmentation (only for numerical data)
         if self.noise_scale > 0 and self.dataset_type == "numerical":
             if self.noise_type == "gaussian":
@@ -379,6 +380,8 @@ class CylinderHFDataset(FluidHFDataset):
         noise_type: str = "gaussian",
         optical_kernel_size: int = 4,
         optical_sigma: float = 1.0,
+        dataset_sufix: str = "",
+
     ):
         super().__init__(
             dataset_name=dataset_name,
@@ -407,6 +410,7 @@ class CylinderHFDataset(FluidHFDataset):
             noise_type=noise_type,
             optical_kernel_size=optical_kernel_size,
             optical_sigma=optical_sigma,
+            dataset_sufix=dataset_sufix,
         )
 
 
